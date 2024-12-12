@@ -2,10 +2,15 @@
   "name": "chat-app",
   "version": "1.0.0",
   "main": "index.js",
+
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server.js"
-  },
+  "start": "node server.js",
+  "server": "nodemon server.js",
+  "client": "npm start --prefix client",
+  "dev": "concurrently \"npm run server\" \"npm run client\"",
+  "build": "npm run build --prefix client",
+  "test": "echo \"Error: no test specified\" && exit 1"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -19,6 +24,7 @@
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
+    "concurrently": "^9.1.0",
     "nodemon": "^3.1.7"
   }
 }

@@ -3,6 +3,14 @@ const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const path = require("path");
+
+// Serve frontend build files
+app.use(express.static(path.join(__dirname, "client/build")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
+});
 
 dotenv.config();
 
