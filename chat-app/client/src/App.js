@@ -3,6 +3,15 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Join from "./components/Join";
 import Chat from "./components/Chat";
 
+import { io } from "socket.io-client";
+
+const socket = io("https://text-app-4cdh.onrender.com", {
+  withCredentials: true, // Required for CORS with credentials
+});
+
+export default socket;
+
+
 const App = () => {
   const [room, setRoom] = useState("");
 
@@ -16,4 +25,4 @@ const App = () => {
   );
 };
 
-export default App;
+// export default App;
