@@ -2,51 +2,38 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
-const dotenv = require("dotenv");
 const path = require("path");
 
-// Serve frontend build files
-app.use(express.static(path.join(__dirname, "client/build")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
-});
-
-dotenv.config();
-
-const app = express();
-app.use(cors());
-
+const app = express(); // Initialize the app before using it
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:3000", // React frontend
-    methods: ["GET", "POST"],
-  },
-});
+const io = new Server(server);
 
-let users = {};
+// Middleware
+app.use(cors());
+app.use(express.json());
 
+// Serve frontend build files in production
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "client/build")));
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
+  });
+}
+
+// Example socket.io event handling
 io.on("connection", (socket) => {
-  console.log(`User connected: ${socket.id}`);
+  console.log("A user connected:", socket.id);
 
-  // Handle joining a chat room
-  socket.on("join_room", (room) => {
-    socket.join(room);
-    console.log(`User with ID: ${socket.id} joined room: ${room}`);
+  socket.on("chat message", (msg) => {
+    io.emit("chat message", msg);
   });
 
-  // Handle sending messages
-  socket.on("send_message", (data) => {
-    io.in(data.room).emit("receive_message", data);
-  });
-
-  // Handle disconnect
   socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`);
+    console.log("A user disconnected:", socket.id);
   });
 });
 
+// Set the PORT and start the server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
