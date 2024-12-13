@@ -1,28 +1,65 @@
-import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Join from "./components/Join";
-import Chat from "./components/Chat";
+import React, { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
+import './App.css';
 
-import { io } from "socket.io-client";
+// Socket.io server URL (production or development)
+const SOCKET_SERVER_URL = "https://text-app-4cdh.onrender.com"; // Replace with your server URL
 
-const socket = io("https://text-app-4cdh.onrender.com", {
-  withCredentials: true, // Required for CORS with credentials
+// Initialize socket connection
+const socket = io(SOCKET_SERVER_URL, {
+  withCredentials: true, // Ensure that cookies are sent for auth
+  transports: ['websocket'], // Use WebSocket for faster communication
 });
 
-export default socket;
+function App() {
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [user, setUser] = useState(""); // Store username if needed
 
+  // Handle incoming messages from the server
+  useEffect(() => {
+    // Listen for 'chat message' events from the server
+    socket.on("chat message", (msg) => {
+      setMessages((prevMessages) => [...prevMessages, msg]);
+    });
 
-const App = () => {
-  const [room, setRoom] = useState("");
+    // Clean up the socket connection on component unmount
+    return () => {
+      socket.off("chat message");
+    };
+  }, []);
+
+  // Send message to the server
+  const handleSendMessage = () => {
+    if (message.trim()) {
+      socket.emit("chat message", message); // Send message to server
+      setMessage(""); // Clear the input field
+    }
+  };
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Join setRoom={setRoom} />} />
-        <Route path="/chat" element={<Chat room={room} />} />
-      </Routes>
-    </Router>
-  );
-};
+    <div className="App">
+      <h1>Real-Time Chat</h1>
+      
+      <div className="chat-box">
+        <div className="messages">
+          {messages.map((msg, index) => (
+            <div key={index} className="message">
+              {msg}
+            </div>
+          ))}
+        </div>
 
-// export default App;
+        <input
+          type="text"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Type a message..."
+        />
+        <button onClick={handleSendMessage}>Send</button>
+      </div>
+    </div>
+  );
+}
+
+export default App;
